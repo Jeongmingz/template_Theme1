@@ -28,7 +28,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ children }) => {
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <ThemeToggleBtn onClick={toggleTheme}>
-        {theme === lightTheme ? <FiMoon size={24} /> : <FiSun size={24} />}
+        {theme === lightTheme ? <FiMoon size={16} /> : <FiSun size={16} />}
       </ThemeToggleBtn>
       {children}
     </ThemeProvider>
@@ -36,13 +36,19 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ children }) => {
 };
 
 const ThemeToggleBtn = styled.button`
+  display: flex;
+  flex-direction: row;
+
+  align-items: center;
+  justify-content: center;
+
   cursor: pointer;
   position: fixed;
-  right: 20px;
-  bottom: 20px;
-  padding: 20px;
+  right: 15px;
+  bottom: 15px;
+  padding: 15px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 15px;
   background-color: ${({ theme }) => theme.otherThemeColors.background};
   color: ${({ theme }) => theme.otherThemeColors.text};
 

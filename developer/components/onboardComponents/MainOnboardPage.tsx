@@ -1,4 +1,4 @@
-const MainOnboardPage: React.FC<{}> = () => {
+const MainOnboardPage: React.FC = () => {
   return (
     <>
     </>
