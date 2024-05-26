@@ -4,11 +4,11 @@ import { AppProps } from 'next/app';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <MainLayout>
-      <ThemeToggle>
+    <ThemeToggle>
+      <MainLayout>
         <Component {...pageProps} />
-      </ThemeToggle>
-    </MainLayout>
+      </MainLayout>
+    </ThemeToggle>
   );
 }
 

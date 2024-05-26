@@ -17,7 +17,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 }
 
 const Container = styled.div`
-
 `
 
 export default MainLayout;

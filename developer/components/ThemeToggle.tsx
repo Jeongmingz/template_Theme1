@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect } from 'react';
-import styled, { ThemeProvider } from 'styled-components';
+import styled, { DefaultTheme, ThemeProvider } from 'styled-components';
 import { lightTheme, darkTheme } from '../styles/theme';
 import GlobalStyle from '../styles/global';
 import { FiMoon, FiSun } from 'react-icons/fi';
@@ -9,11 +9,13 @@ interface ThemeToggleProps {
 }
 
 const ThemeToggle: React.FC<ThemeToggleProps> = ({ children }) => {
-  const [theme, setTheme] = useState(lightTheme);
+  const [theme, setTheme] = useState<DefaultTheme>(darkTheme);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
+    if (savedTheme === 'light') {
+      setTheme(lightTheme);
+    } else {
       setTheme(darkTheme);
     }
   }, []);
@@ -28,7 +30,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ children }) => {
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <ThemeToggleBtn onClick={toggleTheme}>
-        {theme === lightTheme ? <FiMoon size={16} /> : <FiSun size={16} />}
+        {theme === lightTheme ? <FiMoon size={20} /> : <FiSun size={20} />}
       </ThemeToggleBtn>
       {children}
     </ThemeProvider>
@@ -44,13 +46,15 @@ const ThemeToggleBtn = styled.button`
 
   cursor: pointer;
   position: fixed;
-  right: 15px;
-  bottom: 15px;
-  padding: 15px;
+  right: 30px;
+  bottom: 30px;
+  padding: 18px;
   border: 0;
-  border-radius: 15px;
-  background-color: ${({ theme }) => theme.otherThemeColors.background};
-  color: ${({ theme }) => theme.otherThemeColors.text};
+  border-radius: 18px;
+  background-color: ${({ theme }) => theme.otherTheme.background};
+  color: ${({ theme }) => theme.otherTheme.text};
+
+  z-index: 100;
 
   &:hover {
     background-color: ${({ theme }) =>
@@ -58,7 +62,7 @@ const ThemeToggleBtn = styled.button`
   }
 
   svg {
-    color: ${({ theme }) => theme.otherThemeColors.text};
+    color: ${({ theme }) => theme.otherTheme.text.color};
   }
 `;
 
