@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>카카오 챗봇 일일 리포트</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --text: #1a1a18;
+    --text2: #6b6b65;
+    --text3: #a0a099;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.18);
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --blue-mid: #378ADD;
+    --green: #3B6D11;
+    --green-light: #EAF3DE;
+    --amber: #854F0B;
+    --amber-light: #FAEEDA;
+    --red: #A32D2D;
+    --red-light: #FCEBEB;
+    --gray-mid: #B4B2A9;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .app-shell {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 4rem;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: #FAE100;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 1px;
+  }
+
+  /* Upload area */
+  .upload-section { animation: fadeIn 0.3s ease; }
+
+  .upload-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1.5px dashed var(--border2);
+    padding: 3.5rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .upload-card:hover { background: var(--surface2); border-color: var(--blue-mid); }
+  .upload-card.drag { background: var(--blue-light); border-color: var(--blue-mid); }
+
+  .upload-card input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+
+  .upload-icon-wrap {
+    width: 56px; height: 56px;
+    background: var(--surface2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+
+  .upload-icon-wrap svg { width: 26px; height: 26px; color: var(--text3); }
+
+  .upload-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .upload-sub { font-size: 13px; color: var(--text2); }
+  .upload-hint { font-size: 12px; color: var(--text3); margin-top: 8px; }
+
+  .field-hint {
+    margin-top: 16px;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+  }
+
+  .field-hint-title { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 8px; }
+
+  .field-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .chip {
+    font-size: 11px;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    background: var(--surface2);
+    color: var(--text2);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .error-box {
+    background: var(--red-light);
+    border: 1px solid rgba(163,45,45,0.2);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--red);
+    margin-top: 12px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Report */
+  .report-section { display: none; animation: fadeIn 0.3s ease; }
+
+  .report-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .report-title { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+  .report-date { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+  .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  .brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--blue-light);
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 99px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+
+  .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+  .btn-primary { background: var(--text); color: #fff; }
+  .btn-primary:hover { background: #333; }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-ghost {
+    background: var(--surface);
+    color: var(--text2);
+    border: 1px solid var(--border2);
+  }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+
+  .btn-pdf { background: #E24B4A; color: #fff; }
+  .btn-pdf:hover { background: #c43b3a; }
+  .btn-pdf:active { transform: scale(0.97); }
+
+  /* Metric grid */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+
+  .metric-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .metric-label svg { width: 13px; height: 13px; }
+
+  .metric-value { font-size: 26px; font-weight: 700; color: var(--text); line-height: 1; }
+  .metric-value.blue { color: var(--blue); }
+  .metric-value.red { color: #E24B4A; }
+  .metric-unit { font-size: 13px; font-weight: 400; color: var(--text3); margin-left: 2px; }
+
+  /* Charts row */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+
+  .chart-card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .chart-card-title svg { width: 13px; height: 13px; }
+
+  .legend-row {
+    display: flex;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+
+  /* Stat bars */
+  .stat-rows { display: flex; flex-direction: column; gap: 0; }
+
+  .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-row:last-child { border-bottom: none; }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text2);
+    min-width: 80px;
+    flex-shrink: 0;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .bar-fill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+
+  .stat-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 50px;
+    text-align: right;
+  }
+
+  /* Summary strip */
+  .summary-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .summary-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+
+  .summary-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 5px; }
+  .summary-val { font-size: 16px; font-weight: 600; color: var(--text); }
+  .summary-val .accent { color: var(--blue); }
+
+  /* Insight */
+  .insight-box {
+    background: var(--amber-light);
+    border: 1px solid rgba(133,79,11,0.2);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .insight-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .insight-title { font-size: 13px; font-weight: 700; color: #633806; margin-bottom: 3px; }
+  .insight-text { font-size: 13px; color: var(--amber); line-height: 1.6; }
+
+  /* Multi brand */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin: 1.5rem 0 10px;
+  }
+
+  .brand-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+  }
+
+  .brand-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .brand-name-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--blue-light);
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 99px;
+  }
+
+  .brand-date { font-size: 12px; color: var(--text3); }
+
+  .brand-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .bm-item {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+
+  .bm-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+  .bm-val { font-size: 17px; font-weight: 700; color: var(--text); }
+  .bm-val.blue { color: var(--blue); }
+  .bm-val.green { color: var(--green); }
+  .bm-val.red { color: var(--red); }
+
+  /* Rate chip */
+  .rate-chip {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 99px;
+  }
+
+  /* Footer */
+  .report-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .footer-text { font-size: 11px; color: var(--text3); }
+
+  /* PDF export print styles */
+  @media print {
+    body { background: #fff; }
+    .app-shell { padding: 1rem; max-width: 100%; }
+    .top-bar, .header-actions .btn-ghost, .header-actions .btn-pdf { display: none !important; }
+    .metric-card, .chart-card, .summary-item, .brand-card { box-shadow: none !important; }
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 600px) {
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .summary-strip { grid-template-columns: 1fr; }
+    .brand-metrics { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Loading overlay */
+  .pdf-loading {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pdf-loading.show { display: flex; }
+
+  .pdf-spinner {
+    width: 36px; height: 36px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  .pdf-loading-text { color: #fff; font-size: 14px; font-weight: 500; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="pdf-loading" id="pdfLoading">
+  <div class="pdf-spinner"></div>
+  <div class="pdf-loading-text">PDF 생성 중...</div>
+</div>
+
+<div class="app-shell">
+  <div class="top-bar">
+    <div class="logo-area">
+      <div class="logo-icon">💬</div>
+      <div>
+        <div class="logo-text">챗봇 리포트</div>
+        <div class="logo-sub">카카오 챗봇 히스토리 기반 일일 리포트</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Section -->
+  <div class="upload-section" id="uploadSection">
+    <div class="upload-card" id="dropZone">
+      <input type="file" id="fileInput" accept=".json">
+      <div class="upload-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+        </svg>
+      </div>
+      <div class="upload-title">JSON 파일을 드래그하거나 클릭하여 업로드</div>
+      <div class="upload-sub">카카오 챗봇 히스토리 리포트 파일 (.json)</div>
+      <div class="upload-hint">단일 객체 또는 배열 형태 모두 지원</div>
+    </div>
+
+    <div class="field-hint">
+      <div class="field-hint-title">지원 필드</div>
+      <div class="field-chips">
+        <span class="chip">report_date</span>
+        <span class="chip">brand</span>
+        <span class="chip">brand_name</span>
+        <span class="chip">total_count</span>
+        <span class="chip">matched_count</span>
+        <span class="chip">unmatched_count</span>
+        <span class="chip">match_rate</span>
+        <span class="chip">unique_user_count</span>
+        <span class="chip">avg_score</span>
+      </div>
+    </div>
+
+    <div class="error-box" id="errorBox">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="errorMsg"></span>
+    </div>
+  </div>
+
+  <!-- Report Section -->
+  <div class="report-section" id="reportSection"></div>
+</div>
+
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const errorBox = document.getElementById('errorBox');
+const errorMsg = document.getElementById('errorMsg');
+const uploadSection = document.getElementById('uploadSection');
+const reportSection = document.getElementById('reportSection');
+const pdfLoading = document.getElementById('pdfLoading');
+
+let chartInstances = [];
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag'); handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorBox.style.display = 'flex';
+}
+
+function handleFile(file) {
+  errorBox.style.display = 'none';
+  if (!file) return;
+  if (!file.name.endsWith('.json')) { showError('JSON 파일(.json)만 업로드 가능합니다.'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      let data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) data = [data];
+      if (data.length === 0) { showError('데이터가 비어 있습니다.'); return; }
+      const required = ['total_count', 'matched_count', 'unmatched_count'];
+      const missing = required.filter(k => !(k in data[0]));
+      if (missing.length) { showError('필수 필드 누락: ' + missing.join(', ')); return; }
+      renderReport(data);
+    } catch(err) {
+      showError('JSON 파싱 오류: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function destroyCharts() {
+  chartInstances.forEach(c => { try { c.destroy(); } catch(e) {} });
+  chartInstances = [];
+}
+
+function fmtDate(d) {
+  if (!d) return '-';
+  try {
+    const dt = new Date(d + 'T00:00:00');
+    return dt.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+  } catch { return d; }
+}
+
+function rateStyle(r) {
+  const v = parseFloat(r);
+  if (v >= 80) return { bg: '#EAF3DE', color: '#3B6D11' };
+  if (v >= 60) return { bg: '#FAEEDA', color: '#854F0B' };
+  return { bg: '#FCEBEB', color: '#A32D2D' };
+}
+
+function generateInsight(matchRate, unmatched, users, perUser) {
+  let s = `매칭률은 <strong>${matchRate.toFixed(1)}%</strong>`;
+  if (matchRate >= 80) s += '로 양호한 수준입니다.';
+  else if (matchRate >= 60) s += '로 개선 여지가 있습니다.';
+  else s += '로 주의가 필요합니다.';
+  if (unmatched > 0) s += ` 미매칭 ${unmatched}건은 별도 확인이 필요합니다.`;
+  if (users > 0) s += ` 응대객수 ${users}명이 평균 ${perUser}건의 대화를 진행했습니다.`;
+  return s;
+}
+
+function renderReport(data) {
+  destroyCharts();
+  uploadSection.style.display = 'none';
+  reportSection.style.display = 'block';
+
+  const normalized = data.map(d => ({
+    ...d,
+    _brandKey: d.brand_name || d.brand || '-',
+    _dateKey: d.report_date || '-'
+  }));
+
+  const brands = [...new Set(normalized.map(d => d._brandKey))];
+  const dates = [...new Set(normalized.map(d => d._dateKey))];
+
+  if (normalized.length === 1) {
+    renderSingle(normalized[0]);
+    return;
+  }
+
+  if (brands.length === 1 && dates.length > 1) {
+    renderTrend(normalized);
+    return;
+  }
+
+  renderMulti(normalized);
+}
+
+function actionButtons(extraClass) {
+  return `
+    <div class="header-actions">
+      <button class="btn btn-pdf ${extraClass || ''}" onclick="exportPDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+        PDF 내보내기
+      </button>
+      <button class="btn btn-ghost" onclick="resetUpload()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+        다시 업로드
+      </button>
+    </div>`;
+}
+
+function renderSingle(d) {
+  const total = Number(d.total_count) || 0;
+  const matched = Number(d.matched_count) || 0;
+  const unmatched = Number(d.unmatched_count) || 0;
+  const matchRate = parseFloat(d.match_rate) || (total ? matched / total * 100 : 0);
+  const users = Number(d.unique_user_count) || 0;
+  const avgScore = parseFloat(d.avg_score) || 0;
+  const perUser = users ? (total / users).toFixed(1) : '-';
+  const unmatchRate = total ? (unmatched / total * 100).toFixed(1) : '0.0';
+  const brandName = d.brand_name || d.brand || '-';
+  const rc = rateStyle(matchRate);
+
+  reportSection.innerHTML = `
+    <div id="pdfContent">
+      <div class="report-header">
+        <div>
+          <div class="report-title">카카오 챗봇 일일 리포트</div>
+          <div class="report-date">📅 ${fmtDate(d.report_date)}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+          <span class="brand-badge">🏪 ${brandName}</span>
+          ${d.brand && d.brand !== brandName ? `<span style="font-size:11px;color:var(--text3);">코드: ${d.brand}</span>` : ''}
+          ${actionButtons()}
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">💬 총 대화 수</div>
+          <div class="metric-value">${total.toLocaleString()}<span class="metric-unit">건</span></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">✅ 매칭 성공</div>
+          <div class="metric-value blue">${matched.toLocaleString()}<span class="metric-unit">건</span></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">❌ 매칭 실패</div>
+          <div class="metric-value red">${unmatched.toLocaleString()}<span class="metric-unit">건</span></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">🎧 응대객수</div>
+          <div class="metric-value">${users.toLocaleString()}<span class="metric-unit">명</span></div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-card-title">📊 매칭률 현황</div>
+          <div class="legend-row">
+            <span style="display:flex;align-items:center;"><span class="legend-dot" style="background:#378ADD;"></span>매칭 성공 (${matched}건, ${matchRate.toFixed(1)}%)</span>
+            <span style="display:flex;align-items:center;"><span class="legend-dot" style="background:#B4B2A9;"></span>매칭 실패 (${unmatched}건, ${unmatchRate}%)</span>
+          </div>
+          <div style="position:relative;width:100%;height:170px;">
+            <canvas id="pieChart" role="img" aria-label="매칭 성공 ${matched}건, 실패 ${unmatched}건">매칭 성공 ${matched}건, 실패 ${unmatched}건</canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">📈 주요 지표</div>
+          <div class="stat-rows">
+            <div class="stat-row">
+              <span class="stat-label">매칭률</span>
+              <div class="bar-track"><div class="bar-fill" style="width:${Math.min(matchRate,100)}%;background:#378ADD;"></div></div>
+              <span class="stat-val">${matchRate.toFixed(1)}%</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">평균 점수</span>
+              <div class="bar-track"><div class="bar-fill" style="width:${Math.min(avgScore/500*100,100)}%;background:#1D9E75;"></div></div>
+              <span class="stat-val">${avgScore.toFixed(1)}점</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">응대당 대화</span>
+              <div class="bar-track"><div class="bar-fill" style="width:${Math.min(parseFloat(perUser)/20*100,100)}%;background:#EF9F27;"></div></div>
+              <span class="stat-val">${perUser}건</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">미처리율</span>
+              <div class="bar-track"><div class="bar-fill" style="width:${Math.min(parseFloat(unmatchRate),100)}%;background:#E24B4A;"></div></div>
+              <span class="stat-val">${unmatchRate}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-strip">
+        <div class="summary-item">
+          <div class="summary-label">총 대화 / 매칭 성공</div>
+          <div class="summary-val">${total}건 / ${matched}건</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">매칭 실패 / 매칭률</div>
+          <div class="summary-val">${unmatched}건 / <span class="accent">${matchRate.toFixed(1)}%</span></div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">응대객수 / 평균 점수</div>
+          <div class="summary-val">${users}명 / ${avgScore.toFixed(1)}점</div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-icon">💡</div>
+        <div>
+          <div class="insight-title">인사이트</div>
+          <div class="insight-text">${generateInsight(matchRate, unmatched, users, perUser)}</div>
+        </div>
+      </div>
+
+      <div class="report-footer">
+        <span class="footer-text">🕐 리포트 기준일: ${d.report_date || '-'}</span>
+        <span class="footer-text">카카오 챗봇 히스토리 기반 자동 생성</span>
+      </div>
+    </div>
+  `;
+
+  const pieCtx = document.getElementById('pieChart');
+  if (pieCtx) {
+    chartInstances.push(new Chart(pieCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['매칭 성공', '매칭 실패'],
+        datasets: [{ data: [matched, unmatched], backgroundColor: ['#378ADD', '#B4B2A9'], borderWidth: 0, hoverOffset: 4 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '68%',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + '건 (' + (total ? (ctx.raw/total*100).toFixed(1) : 0) + '%)' } } }
+      }
+    }));
+  }
+}
+
+
+function renderTrend(data) {
+  const sorted = [...data].sort((a, b) => new Date(a.report_date || 0) - new Date(b.report_date || 0));
+  const trendData = sorted.slice(-7);
+  const latest = trendData[trendData.length - 1];
+
+  const brandName = latest.brand_name || latest.brand || '-';
+  const dateStart = trendData[0]?.report_date || '-';
+  const dateEnd = latest.report_date || '-';
+  const dateLabel = dateStart === dateEnd ? fmtDate(dateEnd) : fmtDate(dateStart) + ' ~ ' + fmtDate(dateEnd);
+
+  const totalLatest = Number(latest.total_count) || 0;
+  const matchedLatest = Number(latest.matched_count) || 0;
+  const unmatchedLatest = Number(latest.unmatched_count) || 0;
+  const usersLatest = Number(latest.unique_user_count) || 0;
+  const avgScoreLatest = parseFloat(latest.avg_score) || 0;
+  const matchRateLatest = parseFloat(latest.match_rate) || (totalLatest ? matchedLatest / totalLatest * 100 : 0);
+
+  const labels = trendData.map(d => {
+    if (!d.report_date) return '-';
+    const parts = String(d.report_date).split('-');
+    return parts.length === 3 ? `${Number(parts[1])}/${Number(parts[2])}` : d.report_date;
+  });
+
+  const matchRates = trendData.map(d => {
+    const total = Number(d.total_count) || 0;
+    const matched = Number(d.matched_count) || 0;
+    return parseFloat((parseFloat(d.match_rate) || (total ? matched / total * 100 : 0)).toFixed(1));
+  });
+
+  const totalCounts = trendData.map(d => Number(d.total_count) || 0);
+  const matchedCounts = trendData.map(d => Number(d.matched_count) || 0);
+  const unmatchedCounts = trendData.map(d => Number(d.unmatched_count) || 0);
+  const userCounts = trendData.map(d => Number(d.unique_user_count) || 0);
+
+  const prev = trendData.length > 1 ? trendData[trendData.length - 2] : null;
+  const prevTotal = prev ? Number(prev.total_count) || 0 : 0;
+  const prevMatched = prev ? Number(prev.matched_count) || 0 : 0;
+  const prevRate = prev ? parseFloat(prev.match_rate) || (prevTotal ? prevMatched / prevTotal * 100 : 0) : matchRateLatest;
+  const rateDiff = matchRateLatest - prevRate;
+  const totalDiff = totalLatest - prevTotal;
+  const rateDiffText = `${rateDiff >= 0 ? '+' : ''}${rateDiff.toFixed(1)}%p`;
+  const totalDiffText = `${totalDiff >= 0 ? '+' : ''}${totalDiff.toLocaleString()}건`;
+  const perUser = usersLatest ? (totalLatest / usersLatest).toFixed(1) : '-';
+
+  const rowsHtml = trendData.map(d => {
+    const total = Number(d.total_count) || 0;
+    const matched = Number(d.matched_count) || 0;
+    const unmatched = Number(d.unmatched_count) || 0;
+    const users = Number(d.unique_user_count) || 0;
+    const rate = parseFloat(d.match_rate) || (total ? matched / total * 100 : 0);
+    const rc = rateStyle(rate);
+
+    return `
+      <div class="brand-card">
+        <div class="brand-card-header">
+          <span class="brand-name-badge">📅 ${fmtDate(d.report_date)}</span>
+          <span class="rate-chip" style="background:${rc.bg};color:${rc.color};">${rate.toFixed(1)}%</span>
+        </div>
+        <div class="brand-metrics">
+          <div class="bm-item"><div class="bm-label">총 대화</div><div class="bm-val">${total.toLocaleString()}건</div></div>
+          <div class="bm-item"><div class="bm-label">매칭 성공</div><div class="bm-val blue">${matched.toLocaleString()}건</div></div>
+          <div class="bm-item"><div class="bm-label">매칭 실패</div><div class="bm-val red">${unmatched.toLocaleString()}건</div></div>
+          <div class="bm-item"><div class="bm-label">응대객수</div><div class="bm-val">${users.toLocaleString()}명</div></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  reportSection.innerHTML = `
+    <div id="pdfContent">
+      <div class="report-header">
+        <div>
+          <div class="report-title">카카오 챗봇 트렌드 리포트</div>
+          <div class="report-date">📅 ${dateLabel} · 최근 ${trendData.length}일</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+          <span class="brand-badge">📈 ${brandName}</span>
+          ${latest.brand && latest.brand !== brandName ? `<span style="font-size:11px;color:var(--text3);">코드: ${latest.brand}</span>` : ''}
+          ${actionButtons()}
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">💬 최신 대화 수</div>
+          <div class="metric-value">${totalLatest.toLocaleString()}<span class="metric-unit">건</span></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">✅ 최신 매칭률</div>
+          <div class="metric-value blue">${matchRateLatest.toFixed(1)}<span class="metric-unit">%</span></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">📊 전일 대비</div>
+          <div class="metric-value ${rateDiff < 0 ? 'red' : 'blue'}">${rateDiffText}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">🎧 최신 응대객수</div>
+          <div class="metric-value">${usersLatest.toLocaleString()}<span class="metric-unit">명</span></div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-card-title">📈 날짜별 매칭률 추이</div>
+          <div style="position:relative;width:100%;height:260px;">
+            <canvas id="trendRateChart" role="img" aria-label="날짜별 매칭률 추이">날짜별 매칭률 추이</canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">💬 날짜별 대화량</div>
+          <div style="position:relative;width:100%;height:260px;">
+            <canvas id="trendVolumeChart" role="img" aria-label="날짜별 대화량">날짜별 대화량</canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-card-title">🎧 응대객수 추이</div>
+          <div style="position:relative;width:100%;height:230px;">
+            <canvas id="trendUserChart" role="img" aria-label="날짜별 응대객수 추이">날짜별 응대객수 추이</canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">📌 최신 주요 지표</div>
+          <div class="stat-rows">
+            <div class="stat-row">
+              <span class="stat-label">매칭률</span>
+              <div class="bar-track"><div class="bar-fill" style="width:${Math.min(matchRateLatest,100)}%;background:#378ADD;"></div></div>
+              <span class="stat-val">${matchRateLatest.toFixed(1)}%</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">미처리율</span>
+              <div class="bar-track"><div class="bar-fill" style="width:${Math.min(totalLatest ? unmatchedLatest / totalLatest * 100 : 0,100)}%;background:#E24B4A;"></div></div>
+              <span class="stat-val">${(totalLatest ? unmatchedLatest / totalLatest * 100 : 0).toFixed(1)}%</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">응대당 대화</span>
+              <div class="bar-track"><div class="bar-fill" style="width:${Math.min(parseFloat(perUser) / 20 * 100 || 0,100)}%;background:#EF9F27;"></div></div>
+              <span class="stat-val">${perUser}건</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">평균 점수</span>
+              <div class="bar-track"><div class="bar-fill" style="width:${Math.min(avgScoreLatest / 500 * 100,100)}%;background:#1D9E75;"></div></div>
+              <span class="stat-val">${avgScoreLatest.toFixed(1)}점</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-strip">
+        <div class="summary-item">
+          <div class="summary-label">최근 ${trendData.length}일 총 대화</div>
+          <div class="summary-val">${totalCounts.reduce((s, v) => s + v, 0).toLocaleString()}건</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">최근 ${trendData.length}일 매칭 성공</div>
+          <div class="summary-val"><span class="accent">${matchedCounts.reduce((s, v) => s + v, 0).toLocaleString()}건</span></div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">대화 수 전일 대비</div>
+          <div class="summary-val">${totalDiffText}</div>
+        </div>
+      </div>
+
+      <div class="insight-box">
+        <div class="insight-icon">💡</div>
+        <div>
+          <div class="insight-title">트렌드 인사이트</div>
+          <div class="insight-text">
+            최신 매칭률은 <strong>${matchRateLatest.toFixed(1)}%</strong>이며 전일 대비 <strong>${rateDiffText}</strong>입니다.
+            최신 대화 수는 <strong>${totalLatest.toLocaleString()}건</strong>으로 전일 대비 <strong>${totalDiffText}</strong>입니다.
+            최근 ${trendData.length}일 흐름을 기준으로 매칭률과 대화량 변화를 함께 확인할 수 있습니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">최근 ${trendData.length}일 상세</div>
+      ${rowsHtml}
+
+      <div class="report-footer">
+        <span class="footer-text">🕐 리포트 기간: ${dateStart || '-'} ~ ${dateEnd || '-'}</span>
+        <span class="footer-text">카카오 챗봇 히스토리 기반 자동 생성</span>
+      </div>
+    </div>
+  `;
+
+  const rateCtx = document.getElementById('trendRateChart');
+  if (rateCtx) {
+    chartInstances.push(new Chart(rateCtx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: '매칭률(%)',
+          data: matchRates,
+          borderColor: '#378ADD',
+          backgroundColor: 'rgba(55,138,221,0.15)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.raw.toFixed(1) + '%' } } },
+        scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } } }
+      }
+    }));
+  }
+
+  const volumeCtx = document.getElementById('trendVolumeChart');
+  if (volumeCtx) {
+    chartInstances.push(new Chart(volumeCtx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label: '매칭 성공', data: matchedCounts, backgroundColor: '#378ADD', borderRadius: 4 },
+          { label: '매칭 실패', data: unmatchedCounts, backgroundColor: '#B4B2A9', borderRadius: 4 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw.toLocaleString() + '건' } } },
+        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
+      }
+    }));
+  }
+
+  const userCtx = document.getElementById('trendUserChart');
+  if (userCtx) {
+    chartInstances.push(new Chart(userCtx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: '응대객수',
+          data: userCounts,
+          borderColor: '#1D9E75',
+          backgroundColor: 'rgba(29,158,117,0.15)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.raw.toLocaleString() + '명' } } },
+        scales: { y: { beginAtZero: true } }
+      }
+    }));
+  }
+}
+
+
+function renderMulti(data) {
+  const totalAll = data.reduce((s, d) => s + (Number(d.total_count)||0), 0);
+  const matchedAll = data.reduce((s, d) => s + (Number(d.matched_count)||0), 0);
+  const unmatchedAll = data.reduce((s, d) => s + (Number(d.unmatched_count)||0), 0);
+  const usersAll = data.reduce((s, d) => s + (Number(d.unique_user_count)||0), 0);
+  const avgRateAll = totalAll ? (matchedAll / totalAll * 100) : 0;
+  const dates = [...new Set(data.map(d => d.report_date))].sort();
+  const dateLabel = dates.length === 1 ? fmtDate(dates[0]) : fmtDate(dates[0]) + ' ~ ' + fmtDate(dates[dates.length-1]);
+
+  let brandsHtml = data.map(d => {
+    const total = Number(d.total_count)||0;
+    const matched = Number(d.matched_count)||0;
+    const unmatched = Number(d.unmatched_count)||0;
+    const rate = parseFloat(d.match_rate) || (total ? matched/total*100 : 0);
+    const users = Number(d.unique_user_count)||0;
+    const rc = rateStyle(rate);
+    return `
+      <div class="brand-card">
+        <div class="brand-card-header">
+          <span class="brand-name-badge">🏪 ${d.brand_name || d.brand || '-'}</span>
+          <span class="brand-date">${d.report_date || ''}</span>
+        </div>
+        <div class="brand-metrics">
+          <div class="bm-item"><div class="bm-label">총 대화</div><div class="bm-val">${total.toLocaleString()}건</div></div>
+          <div class="bm-item"><div class="bm-label">매칭 성공</div><div class="bm-val blue">${matched.toLocaleString()}건</div></div>
+          <div class="bm-item"><div class="bm-label">응대객수</div><div class="bm-val">${users.toLocaleString()}명</div></div>
+          <div class="bm-item"><div class="bm-label">매칭률</div><div class="bm-val" style="color:${rc.color};">${rate.toFixed(1)}%</div></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  reportSection.innerHTML = `
+    <div id="pdfContent">
+      <div class="report-header">
+        <div>
+          <div class="report-title">카카오 챗봇 일일 리포트</div>
+          <div class="report-date">📅 ${dateLabel} · ${data.length}개 브랜드</div>
+        </div>
+        ${actionButtons()}
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-label">💬 총 대화 (합계)</div>
+          <div class="metric-value">${totalAll.toLocaleString()}<span class="metric-unit">건</span></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">✅ 매칭 성공 (합계)</div>
+          <div class="metric-value blue">${matchedAll.toLocaleString()}<span class="metric-unit">건</span></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">❌ 매칭 실패 (합계)</div>
+          <div class="metric-value red">${unmatchedAll.toLocaleString()}<span class="metric-unit">건</span></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">🎧 응대객수 (합계)</div>
+          <div class="metric-value">${usersAll.toLocaleString()}<span class="metric-unit">명</span></div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-card-title">📊 전체 매칭률</div>
+          <div class="legend-row">
+            <span style="display:flex;align-items:center;"><span class="legend-dot" style="background:#378ADD;"></span>성공 (${matchedAll}건)</span>
+            <span style="display:flex;align-items:center;"><span class="legend-dot" style="background:#B4B2A9;"></span>실패 (${unmatchedAll}건)</span>
+          </div>
+          <div style="position:relative;width:100%;height:160px;">
+            <canvas id="pieChart" role="img" aria-label="전체 매칭 성공 ${matchedAll}건, 실패 ${unmatchedAll}건">전체 매칭 성공 ${matchedAll}건, 실패 ${unmatchedAll}건</canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">📈 브랜드별 매칭률</div>
+          <div style="position:relative;width:100%;height:${data.length * 42 + 40}px;">
+            <canvas id="barChart" role="img" aria-label="브랜드별 매칭률 막대 차트">브랜드별 매칭률</canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">브랜드별 상세</div>
+      ${brandsHtml}
+
+      <div class="report-footer">
+        <span class="footer-text">카카오 챗봇 히스토리 기반 자동 생성</span>
+        <span class="footer-text">${dateLabel}</span>
+      </div>
+    </div>
+  `;
+
+  const pieCtx = document.getElementById('pieChart');
+  if (pieCtx) {
+    chartInstances.push(new Chart(pieCtx, {
+      type: 'doughnut',
+      data: { labels: ['매칭 성공', '매칭 실패'], datasets: [{ data: [matchedAll, unmatchedAll], backgroundColor: ['#378ADD', '#B4B2A9'], borderWidth: 0, hoverOffset: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw + '건 (' + (totalAll ? (ctx.raw/totalAll*100).toFixed(1) : 0) + '%)' } } } }
+    }));
+  }
+
+  const barCtx = document.getElementById('barChart');
+  if (barCtx) {
+    const labels = data.map(d => d.brand_name || d.brand || '-');
+    const rates = data.map(d => {
+      const t = Number(d.total_count)||0;
+      const m = Number(d.matched_count)||0;
+      return parseFloat((parseFloat(d.match_rate) || (t ? m/t*100 : 0)).toFixed(1));
+    });
+    chartInstances.push(new Chart(barCtx, {
+      type: 'bar',
+      data: { labels, datasets: [{ label: '매칭률(%)', data: rates, backgroundColor: '#378ADD', borderRadius: 4 }] },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.raw.toFixed(1) + '%' } } },
+        scales: { x: { min: 0, max: 100, ticks: { callback: v => v + '%' } }, y: { ticks: { font: { size: 12 } } } }
+      }
+    }));
+  }
+}
+
+function resetUpload() {
+  destroyCharts();
+  reportSection.style.display = 'none';
+  reportSection.innerHTML = '';
+  uploadSection.style.display = 'block';
+  fileInput.value = '';
+  errorBox.style.display = 'none';
+}
+
+async function exportPDF() {
+  const el = document.getElementById('pdfContent');
+  if (!el) return;
+  pdfLoading.classList.add('show');
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    await html2pdf().set({
+      margin: [10, 10, 10, 10],
+      filename: `챗봇_리포트_${today}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    }).from(el).save();
+  } catch(e) {
+    alert('PDF 생성 중 오류가 발생했습니다: ' + e.message);
+  } finally {
+    pdfLoading.classList.remove('show');
+  }
+}
+</script>
+</body>
+</html>
