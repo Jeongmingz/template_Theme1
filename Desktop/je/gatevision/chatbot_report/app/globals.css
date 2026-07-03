@@ -48,6 +48,10 @@ input {
   font: inherit;
 }
 
+select {
+  font: inherit;
+}
+
 button {
   border: 0;
 }
@@ -744,12 +748,410 @@ button {
 }
 
 .dashboard {
+  min-width: 0;
   animation: fade-in 0.3s ease;
 }
 
-.pdf-exporting .notice-box,
-.pdf-exporting .pdf-loading {
+.pdf-report-header,
+.pdf-stage {
+  display: none;
+}
+
+.pdf-exporting .notice-box {
   display: none !important;
+}
+
+.pdf-stage {
+  position: absolute;
+  left: -100000px;
+  top: 0;
+  display: block;
+  width: 1040px;
+  background: #fff;
+  color: var(--text);
+  pointer-events: none;
+}
+
+.pdf-stage .pdf-page {
+  display: block;
+  width: 1040px;
+  min-height: 0;
+  padding: 38px 42px;
+  overflow: hidden;
+  background: #fff;
+  animation: none;
+}
+
+.pdf-stage .pdf-page--landscape {
+  width: 1370px;
+}
+
+.pdf-stage .pdf-report-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid var(--text);
+}
+
+.pdf-report-header h1 {
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.pdf-report-header p,
+.pdf-report-meta span {
+  color: var(--text2);
+  font-size: 12px;
+}
+
+.pdf-report-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 13px;
+}
+
+.pdf-stage .metrics-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 14px;
+}
+
+.pdf-stage .charts-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.pdf-stage .chart-card {
+  padding: 14px;
+}
+
+.pdf-stage .chart-frame {
+  height: var(--chart-height, 220px) !important;
+}
+
+.pdf-stage .top-list__main strong {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.pdf-stage .metric-card,
+.pdf-stage .chart-card,
+.pdf-stage .table-card {
+  box-shadow: none;
+}
+
+.pdf-stage .metric-card {
+  padding: 13px 14px;
+}
+
+.pdf-stage .metric-value {
+  font-size: 22px;
+}
+
+.pdf-stage .table-card {
+  overflow: visible;
+  border-radius: 0;
+}
+
+.pdf-stage .table-card__header {
+  padding: 12px 0;
+}
+
+.pdf-stage .table-scroll {
+  max-height: none;
+  overflow: visible;
+}
+
+.pdf-stage table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.pdf-stage th,
+.pdf-stage td {
+  padding: 8px 7px;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.pdf-stage th {
+  position: static;
+  font-size: 9px;
+  white-space: normal;
+}
+
+.pdf-stage td {
+  max-width: none;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pdf-stage tbody tr:hover {
+  background: transparent;
+}
+
+.pdf-stage .pdf-page--landscape th,
+.pdf-stage .pdf-page--landscape td {
+  padding: 6px;
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.pdf-stage .pdf-page--landscape th {
+  white-space: normal;
+}
+
+.pdf-stage .pdf-page--landscape td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pdf-stage .pdf-page--landscape .status-chip {
+  min-height: 18px;
+  padding: 1px 5px;
+  font-size: 8px;
+}
+
+.pdf-stage .pdf-page--landscape .table-card__title {
+  font-size: 13px;
+}
+
+.pdf-stage .pdf-report-page {
+  width: 1040px;
+  min-height: 1370px;
+  padding: 46px 54px 42px;
+  color: var(--text);
+}
+
+.pdf-report-page,
+.pdf-report-page * {
+  letter-spacing: 0;
+}
+
+.pdf-report-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid #1a1a18;
+}
+
+.pdf-report-page__header h1 {
+  margin-top: 4px;
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.18;
+}
+
+.pdf-report-kicker {
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pdf-report-filter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  max-width: 330px;
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.pdf-report-filter strong {
+  color: var(--text);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.pdf-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.pdf-metric-tile {
+  min-width: 0;
+  min-height: 128px;
+  padding: 18px;
+  border: 1px solid #ddd8ce;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.pdf-metric-tile span,
+.pdf-metric-tile em {
+  display: block;
+  color: var(--text3);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.pdf-metric-tile strong {
+  display: block;
+  margin: 16px 0 6px;
+  color: var(--text);
+  font-size: 31px;
+  font-weight: 900;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.pdf-two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.pdf-two-col--tight {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+.pdf-panel,
+.pdf-table-panel {
+  min-width: 0;
+  margin-bottom: 16px;
+  padding: 20px;
+  border: 1px solid #ddd8ce;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.pdf-panel--accent {
+  border-color: rgba(24, 95, 165, 0.28);
+  background: #f4f9fd;
+}
+
+.pdf-panel--warning {
+  border-color: rgba(226, 75, 74, 0.25);
+  background: #fff8f8;
+}
+
+.pdf-panel h2 {
+  margin-bottom: 12px;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.pdf-section-note,
+.pdf-footnote {
+  margin-bottom: 12px;
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+.pdf-footnote {
+  margin-top: 4px;
+}
+
+.pdf-bullets {
+  display: grid;
+  gap: 10px;
+  padding-left: 18px;
+}
+
+.pdf-bullets li {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.58;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.pdf-action-box {
+  min-height: 210px;
+}
+
+.pdf-chart-svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+.pdf-donut-svg {
+  display: block;
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 8px;
+}
+
+.pdf-legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pdf-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pdf-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.pdf-report-table {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.pdf-report-table th,
+.pdf-report-table td {
+  padding: 8px 7px;
+  border-bottom: 1px solid #e6e1d8;
+  font-size: 10px;
+  line-height: 1.36;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pdf-report-table th {
+  position: static;
+  color: var(--text2);
+  background: #f4f2ed;
+  font-size: 9px;
+  font-weight: 900;
+  white-space: normal;
+}
+
+.pdf-report-table td {
+  max-width: none;
+  color: var(--text);
+}
+
+.pdf-empty-td {
+  color: var(--text3);
+  text-align: center;
 }
 
 .empty-state {
@@ -768,6 +1170,7 @@ button {
   font-size: 15px;
   font-weight: 700;
   overflow-wrap: anywhere;
+  word-break: keep-all;
 }
 
 .empty-state__sub {
@@ -775,6 +1178,7 @@ button {
   color: var(--text3);
   font-size: 12px;
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .tabs {
@@ -856,6 +1260,8 @@ button {
 .table-scroll {
   overflow: auto;
   max-height: 580px;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -1038,6 +1444,10 @@ tbody tr:hover {
     padding-inline: 1rem;
   }
 
+  .top-bar {
+    margin-bottom: 1.25rem;
+  }
+
   .upload-card {
     padding: 2.75rem 1.25rem;
   }
@@ -1098,6 +1508,10 @@ tbody tr:hover {
   .table-scroll {
     max-height: 520px;
   }
+
+  table {
+    min-width: 780px;
+  }
 }
 
 @media (max-width: 420px) {
@@ -1112,6 +1526,7 @@ tbody tr:hover {
   .header-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
   .tabs {
@@ -1129,6 +1544,11 @@ tbody tr:hover {
     padding-inline: 10px;
   }
 
+  .btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
   .metric-card,
   .chart-card,
   .summary-item,
@@ -1138,6 +1558,14 @@ tbody tr:hover {
 
   .metric-value {
     font-size: 21px;
+  }
+
+  .chart-card {
+    padding: 14px;
+  }
+
+  .chart-frame {
+    height: min(var(--chart-height, 220px), 230px) !important;
   }
 
   .stat-row {

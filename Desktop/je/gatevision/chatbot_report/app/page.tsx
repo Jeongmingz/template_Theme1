@@ -16,6 +16,7 @@ import type { ChartOptions } from "chart.js";
 import { useEffect, useMemo, useState } from "react";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import { brandLabel, matchRate, shortDate, sortByDate, type ReportRow } from "@/lib/report";
+import { exportDashboardPdf } from "@/lib/pdf-export";
 
 ChartJS.register(ArcElement, BarElement, CategoryScale, Filler, Legend, LinearScale, LineElement, PointElement, Tooltip);
 
@@ -213,35 +214,30 @@ export default function Home() {
 
   async function exportPdf() {
     const target = document.getElementById("pdfContent");
-    if (!target) return;
+    if (!target || !data) return;
 
     setError("");
     setIsExporting(true);
-    document.body.classList.add("pdf-exporting");
     try {
-      const html2pdf = (await import("html2pdf.js")).default;
       const today = new Date().toISOString().slice(0, 10);
-      await new Promise((resolve) => window.setTimeout(resolve, 250));
-      await html2pdf()
-        .set({
-          margin: [10, 10, 10, 10],
-          filename: `챗봇_히스토리_리포트_${today}.pdf`,
-          image: { type: "jpeg", quality: 0.98 },
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: "#f5f4f0",
+      await exportDashboardPdf(target, {
+        filename: `챗봇_운영_보고서_${today}.pdf`,
+        report: {
+          filters: {
+            from,
+            to,
+            brandLabel: brand ? brands.find((item) => item.brand === brand)?.brand_name || brand : "전체 브랜드",
+            limit,
           },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-          pagebreak: { mode: ["avoid-all", "css", "legacy"] },
-        })
-        .from(target)
-        .save();
+          daily: data.daily,
+          faqSummary: data.faqSummary,
+          unmatchedQueries: data.unmatchedQueries,
+          history: data.history,
+        },
+      });
     } catch (err) {
       setError(err instanceof Error ? `PDF 생성 중 오류가 발생했습니다: ${err.message}` : "PDF 생성 중 오류가 발생했습니다.");
     } finally {
-      document.body.classList.remove("pdf-exporting");
       setIsExporting(false);
     }
   }
@@ -276,6 +272,16 @@ export default function Home() {
 
       {data ? (
         <section className="dashboard" id="pdfContent">
+          <div className="pdf-report-header">
+            <div>
+              <h1>챗봇 히스토리 운영 리포트</h1>
+              <p>{from || "전체"} ~ {to || "전체"}</p>
+            </div>
+            <div className="pdf-report-meta">
+              <strong>{brand ? brands.find((item) => item.brand === brand)?.brand_name || brand : "전체 브랜드"}</strong>
+              <span>{numberFormat.format(Number(limit))}건 조회</span>
+            </div>
+          </div>
           <MetricGrid
             metrics={[
               ["총 대화", summary.totalCount, "건"],
